@@ -1,14 +1,13 @@
 import axios from 'axios';
 
 export async function summarizeChange(url: string, diff: string): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return diff;
-
   try {
     const res = await axios.post(
-      'https://api.anthropic.com/v1/messages',
+      'https://openrouter.ai/api/v1/chat/completions',
       {
-        model: 'claude-sonnet-4-20250514',
+        model: 'anthropic/claude-sonnet-4-5',
         max_tokens: 100,
         messages: [{
           role: 'user',
@@ -17,14 +16,13 @@ export async function summarizeChange(url: string, diff: string): Promise<string
       },
       {
         headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
+          'Authorization': `Bearer ${apiKey}`,
           'content-type': 'application/json',
         },
         timeout: 10000,
       }
     );
-    return res.data.content[0]?.text?.trim() ?? diff;
+    return res.data.choices[0]?.message?.content?.trim() ?? diff;
   } catch {
     return diff;
   }
